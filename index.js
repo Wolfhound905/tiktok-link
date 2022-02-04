@@ -17,19 +17,21 @@ module.exports = class tiktokLink extends Plugin {
         powercord.api.commands.registerCommand({
             command: "tiktok",
             description:
-                "Give a tiktok link and then it will be sent as a video.",
+            "Give a tiktok link and then it will be sent as a video.",
             usage: "{c} <tiktok link>",
             executor: (userInput) => {
                 return this.getTikTok(userInput);
             },
         });
     }
-
+    
     pluginWillUnload() {
         powercord.api.commands.unregisterCommand("tiktok");
     }
-
+    
     async getTikTok(userInput) {
+        
+        // -----snapsave.app---------------------------------------------------------
         let boundary = "----WebKitFormBoundary" + Math.random().toString(16);
         let formData =
             `--${boundary}\r\nContent-Disposition: form-data; name="url"\n\n` +
@@ -49,12 +51,9 @@ module.exports = class tiktokLink extends Plugin {
         let tiktok_link;
 
         while ((m = regex.exec(whatever.body.data)) !== null) {
-            // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
             }
-
-            // The result can be accessed through the `m`-variable.
             m.forEach((match, groupIndex) => {
                 try {
                     let link = new URL(match);
@@ -66,18 +65,53 @@ module.exports = class tiktokLink extends Plugin {
                 } catch {}
             });
         }
+        // -----------------------------------------------------------------------
 
+
+
+        // -----tikdown.org--------------------------------------------------------
+        // let whatever = await post(`https://tikdown.org/getAjax?url=${encodeURI(userInput)}`)
+
+        // let regex = /href="(.*mp4)"/gm;
+        // let m;
+        // let tiktok_link;
+        // let msg_response;
+
+        // let html = JSON.parse(new Buffer(whatever.body).toString())
+
+        // while ((m = regex.exec(html.html)) !== null) {
+        //     if (m.index === regex.lastIndex) {
+        //         regex.lastIndex++;
+        //     }
+        //     m.forEach((match, groupIndex) => {
+        //         console.log(match);
+        //         try {
+        //             let link = new URL(match);
+        //             if (link.hostname.includes("tikdown.org")) {
+        //                 if (link.searchParams.get("filename").includes(".mp4")) {
+        //                     tiktok_link = link.toString();
+        //                 }
+        //             }
+        //             return;
+        //         } catch {}
+        //     });
+        // }
+        // -----------------------------------------------------------------------
+
+
+
+
+        
         if (tiktok_link) {
-            msg_response = "Your video is being sent now!";
+            msg_response = "Your video is being sent now! (This will depend on upload speed)";
+            const channel = Endpoints.MESSAGES(channels.getChannelId())
             const video = await get(tiktok_link);
 
             console.log(video.body);
             console.log(this.createRequest);
 
             try {
-                const request = this.createRequest.post(
-                    Endpoints.MESSAGES(channels.getChannelId())
-                );
+                const request = this.createRequest.post(channel);
                 const formData = request._getFormData();
 
                 let url = new URL(userInput);
